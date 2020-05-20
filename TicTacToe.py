@@ -1,18 +1,27 @@
-class TicTacToe:
-    markers = ['X', 'O']
+"""
+The classic tic-tac-toe game
 
-    def __init__(self, markers=markers, empty_marker=" "):
-        self.empty_marker = empty_marker
+Xs and Os battle it out in alternating moves attempting
+to win by getting 3 marks in a horizontal, vertical
+or diagonal row.
+
+Notes:
+    * X always starts
+    * Games can end in a tie
+"""
+
+
+class TicTacToe:
+
+    def __init__(self):
+        self.empty_marker = " "
         self.board = [[self.empty_marker for _ in range(3)] for _ in range(3)]
         self.available_locations = [_ for _ in range(1, 10)]
-        self.turn_number = 0
-        self.markers = markers
+        self._markers = ['X', 'O']
+        self._move_stack = []
 
     def __repr__(self):
         return "TicTacToe()"
-
-    def __increment_turn(self):
-        self.turn_number += 1
 
     def __map_num_to_tuple(self, selection: int) -> tuple:
         """
@@ -37,9 +46,9 @@ class TicTacToe:
                 print("\t-----------")
 
     def get_turn(self):
-        return self.turn_number
+        return len(self._move_stack)
 
-    def is_draw(self):
+    def is_tie(self):
         for row in self.board:
             if self.empty_marker in row:
                 return False
@@ -48,13 +57,26 @@ class TicTacToe:
     def space_is_free(self, location):
         return location in self.available_locations
 
+    def undo_last_move(self):
+        # Pop last turn from the stack
+        #  return some error if stack is empty
+        # Update board with "empty" space
+        # Add spot back to available_locations
+        if len(self._move_stack):
+            last_move = self._move_stack.pop()
+            i, j = self.__map_num_to_tuple(last_move)
+            self.board[i][j] = self.empty_marker
+            self.available_locations.append(last_move)
+        else:
+            print("No moves to undo...")
+
     def update_board(self, location):
         # Turn this into a method
-        marker = self.markers[self.get_turn() % len(self.markers)]
+        marker = self._markers[self.get_turn() % len(self._markers)]
         if self.space_is_free(location):
             i, j = self.__map_num_to_tuple(location)
             self.board[i][j] = marker
-            self.__increment_turn()
+            self._move_stack.append(location)
             self.available_locations.remove(location)
         else:
             raise ValueError
