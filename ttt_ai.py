@@ -68,7 +68,6 @@ def main():
     board = TicTacToe()
     while not game_over:
         board.draw()
-        """
         if is_human_turn:
             try:
                 selection = get_player_move(board)
@@ -79,13 +78,11 @@ def main():
                 continue
         else:
             board.update_board(computer_move(board))
-        """
-        board.update_board(computer_move(board))
         if board.winner():
             print(f"{board.winner()} is the winner!")
             game_over = True
             continue
-        if board.is_draw():
+        if board.is_tie():
             print("It's a draw!")
             game_over = True
             continue
