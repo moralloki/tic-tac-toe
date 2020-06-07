@@ -1,48 +1,30 @@
 #!/bin/env python3
 
 from TicTacToe import TicTacToe
-from copy import deepcopy
-from logging import getLogger
 from random import choice as random_choice
+from time import time
+import logging
 
-# Set up a logger
-log = getLogger(__name__)
 
+def create_console_logger(level: str, format: str) -> logging.Logger:
+    # Create logger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(getattr(logging, level))
 
-def computer_move(board):
-    center = [5]
-    corners = [1, 3, 7, 9]
-    edges = [2, 4, 6, 8]
-    available_moves = board.get_available_locations()
-    print("Computer is choosing from: {}".format(available_moves))
+    # Create console handler
+    ch = logging.StreamHandler()
+    ch.setLevel(getattr(logging, level))
 
-    # Can I win on my next move?
-    for move in available_moves:
-        # Create a board copy
-        board_copy = deepcopy(board)
-        board_copy.update_board(move)
-        if board_copy.winner():
-            return move
+    # Create formatter
+    formatter = logging.Formatter(format)
 
-    # Can I block against a win with my next move?
-    for move in available_moves:
-        # Create a board copy
-        board_copy = deepcopy(board)
-        # Switch to the next player
-        board_copy.turn_number += 1
-        board_copy.update_board(move)
-        if board_copy.winner():
-            return move
+    # add formatter to ch
+    ch.setFormatter(formatter)
 
-    # Run through corners, center, then edges for next available move
-    for l in corners, center, edges:
-        choices = list(set(l).intersection(available_moves))
-        if choices:
-            choice = random_choice(choices)
-            break
-    # BUG: This doesn't always print
-    print("Computer choose {}. Your move...".format(choice))
-    return choice
+    # add ch to logger
+    logger.addHandler(ch)
+
+    return logger
 
 
 def get_player_move(board) -> int:
@@ -62,7 +44,11 @@ def get_player_move(board) -> int:
     return selection
 
 
-def minimax(board, is_maximizing_player):
+def minimax(board, depth, is_maximizing_player):
+    global move_inspections
+    move_inspections += 1
+    #print("Entering minimax()..")
+    #print("Maximizing player: {}".format(is_maximizing_player))
     """
     Return when a leaf node is found:
         * board.is_tie() : 0
@@ -72,7 +58,6 @@ def minimax(board, is_maximizing_player):
     if board.winner() == 'X':
         value = 1
         log.debug(f"X wins this path!: Returning {value}")
-        # board.draw()
         return value
     elif board.winner() == 'O':
         value = -1
@@ -93,29 +78,28 @@ def minimax(board, is_maximizing_player):
         for move in moves:
             log.debug(f"Trying {move} for the mini player")
             board.update_board(move)
-            score = minimax(board, not is_maximizing_player)
+            score = minimax(board, depth-1, not is_maximizing_player)
             tmpScore = min(score, bestScore)
             if tmpScore < bestScore:
                 bestScore = tmpScore
             board.undo_last_move()
-        log.debug(f"Returning {bestScore} up the chain")
-        return bestScore
     else:  # minimizing player
         # What would the maximizing player pick next?
         bestScore = -2
         for move in moves:
             log.debug(f"Trying {move} for the maxi player")
             board.update_board(move)
-            score = minimax(board, not is_maximizing_player)
+            score = minimax(board, depth-1, not is_maximizing_player)
             tmpScore = max(score, bestScore)
             if tmpScore > bestScore:
                 bestScore = tmpScore
             board.undo_last_move()
-        log.debug(f"Returning {bestScore} up the chain")
-        return bestScore
+    log.debug(f"Returning {bestScore} up the chain")
+    return bestScore
 
 
 def best_move(board, is_maxi_player):
+    print("Entering best_move()")
     if is_maxi_player:
         bestScore = -2
         marker = 'X'
@@ -134,8 +118,8 @@ def best_move(board, is_maxi_player):
     for move in moves:
         log.debug(f"Trying out {move}")
         board.update_board(move)
-        # Run suggested board through minimax()
-        score = minimax(board, is_maxi_player)
+        # Run board through minimax()
+        score = minimax(board, len(moves), is_maxi_player)
 
         log.debug(f"Checking if {score} is better than {bestScore}...")
         if is_maxi_player:
@@ -161,52 +145,53 @@ def setup_board(board, move_list):
 
 
 def main():
+    """
+    There should only be 255168 inspections for the 1st move
+    """
     # Global vars
-    game_over = False
-    maxi_player = False
+    global log, move_inspections
 
+    # Vars
+    game_over = False
+    maxi_player = True
+
+    # Set up a logger
+    log = create_console_logger('DEBUG', '%(levelname)s: %(message)s')
+
+    t0 = time()
     board = TicTacToe()
+    t1 = time()
+    print("It took {} usecs to initialize my board".format(t1-t0))
 
     # Create a starting board
-    #starting_board = [1, 5, 9, 2, 8, 3]
+    starting_board = [1, 5, 3, 2, 8, 4]
     #starting_board = [1, 5, 9]
-    starting_board = []
+    #starting_board = []
+    #starting_board = []
     setup_board(board, starting_board)
 
     """
     Starting board
-     X | O | O
+     X | O | X
     -----------
-       | O |
+     O | O |
     -----------
-       | X | X
+       | X |
 
-    X is next move
-    Should iterate through as:
-
-    X    O    X
-    ------------
-    4-> 6-> 7 == X wins (+1)
-    4-> 7     == O wins (-1)
-    # Since O can win, move 4 == -1 score
-    6-> 4-> 7 == X wins (+1)
-    6-> 7     == O wins (-1) no final move to check
-    # Since O can win, move 6 == -1 score
-    7         == X wins (+1)
-    # Only 1 outcome, move 7 == +1 score
     """
     board.draw()
     while not game_over:
-        if maxi_player:
+        if maxi_player:  # computer player
+            # Reset inspection count
+            move_inspections = 0
             board.update_board(best_move(board, maxi_player))
+            print(f"{move_inspections} moves were inspected")
         else:
             board.update_board(get_player_move(board))
         board.draw()
+        maxi_player = not maxi_player
         # end or switch players
-        if board.winner() or board.is_tie():
-            game_over = True
-        else:
-            maxi_player = not maxi_player
+        game_over = board.winner() or board.is_tie()
 
     if board.winner():
         print(f"{board.winner()} is the winner!")
