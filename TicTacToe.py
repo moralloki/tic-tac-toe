@@ -21,7 +21,21 @@ class TicTacToe:
         self._move_stack = []
 
     def __repr__(self):
-        return "TicTacToe()"
+        tmpStr = ""
+        for i in range(3):
+            tmpStr += "\t {} | {} | {}\n".format(
+                self.board[i][0],
+                self.board[i][1],
+                self.board[i][2])
+            if i != 2:
+                tmpStr += "\t-----------\n"
+        # return "TicTacToe()"
+        tmpStr = f"\t {self.board[0][0]} | {self.board[0][1]} | {self.board[0][2]}\n"
+        tmpStr += "\t-----------\n"
+        tmpStr += f"\t {self.board[1][0]} | {self.board[1][1]} | {self.board[1][2]}\n"
+        tmpStr += "\t-----------\n"
+        tmpStr += f"\t {self.board[2][0]} | {self.board[2][1]} | {self.board[2][2]}"
+        return tmpStr
 
     def __map_num_to_tuple(self, selection: int) -> tuple:
         """
@@ -67,6 +81,7 @@ class TicTacToe:
             i, j = self.__map_num_to_tuple(last_move)
             self.board[i][j] = self.empty_marker
             self.available_locations.append(last_move)
+            self.available_locations.sort()
         else:
             print("No moves to undo...")
 
