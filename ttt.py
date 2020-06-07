@@ -82,8 +82,8 @@ def main():
             print(f"{board.winner()} is the winner!")
             game_over = True
             continue
-        if board.is_draw():
-            print("It's a draw!")
+        if board.is_tie():
+            print("It's a tie!")
             game_over = True
             continue
         # Flip our player
