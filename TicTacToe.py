@@ -46,6 +46,9 @@ class TicTacToe:
         selection -= 1
         return (selection // 3, selection % 3)
 
+    def current_player(self):
+        return self._markers[self.get_turn() % len(self._markers)]
+
     def get_available_locations(self):
         return self.available_locations
 
@@ -86,11 +89,9 @@ class TicTacToe:
             print("No moves to undo...")
 
     def update_board(self, location):
-        # Turn this into a method
-        marker = self._markers[self.get_turn() % len(self._markers)]
         if self.space_is_free(location):
             i, j = self.__map_num_to_tuple(location)
-            self.board[i][j] = marker
+            self.board[i][j] = self.current_player()
             self._move_stack.append(location)
             self.available_locations.remove(location)
         else:
@@ -102,11 +103,13 @@ class TicTacToe:
             # Horizontal
             if self.board[i][0] == self.board[i][1] == self.board[i][2] and self.board[i][0] != self.empty_marker:
                 winner = self.board[i][0]
+                break
             # Vertical
             if self.board[0][i] == self.board[1][i] == self.board[2][i] and self.board[0][i] != self.empty_marker:
                 winner = self.board[0][i]
-            # Diagonal
-            if self.board[1][1] != self.empty_marker:
-                if self.board[0][0] == self.board[1][1] == self.board[2][2] or self.board[2][0] == self.board[1][1] == self.board[0][2]:
-                    winner = self.board[1][1]
+                break
+        # Diagonal
+        if self.board[1][1] != self.empty_marker:
+            if self.board[0][0] == self.board[1][1] == self.board[2][2] or self.board[2][0] == self.board[1][1] == self.board[0][2]:
+                winner = self.board[1][1]
         return winner
