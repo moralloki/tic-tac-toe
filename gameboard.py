@@ -63,8 +63,8 @@ def main():
     # Set up some global variables
     global board_line_thickness, rects, WHITE, BLACK
 
-    BOARD_HEIGHT = 500
-    BOARD_WIDTH = 500
+    CANVAS_HEIGHT = 500
+    CANVAS_WIDTH = 500
     board_line_thickness = 5
     rects = [
         pygame.Rect((100, 100), (98, 98)),
@@ -87,7 +87,7 @@ def main():
     print(board)
 
     # Set up the drawing window
-    screen = pygame.display.set_mode([BOARD_WIDTH, BOARD_HEIGHT])
+    screen = pygame.display.set_mode([CANVAS_WIDTH, CANVAS_HEIGHT])
 
     draw_board(screen, board_line_thickness)
 
