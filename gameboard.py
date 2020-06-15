@@ -31,6 +31,11 @@ def draw_winning_line(screen, win_info):
     if wtype == 'column':
         pygame.draw.line(screen, BLUE, (150+(index*padding), 125),
                          (150+(index*padding), 375), thickness)
+    if wtype == 'diagonal':
+        if index == 0:
+            pygame.draw.line(screen, BLUE, (120, 140), (380, 360), thickness)
+        else:
+            pygame.draw.line(screen, BLUE, (120, 360), (380, 140), thickness)
     pygame.display.update()
 
 
