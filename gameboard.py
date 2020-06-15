@@ -4,7 +4,34 @@
 # Import and initialize the pygame library
 import TicTacToe
 import pygame
-from pygame.locals import MOUSEBUTTONUP
+from pygame.locals import (
+    MOUSEBUTTONUP,
+    QUIT
+)
+
+# Set up some global variables
+CANVAS_HEIGHT = 500
+CANVAS_WIDTH = 500
+
+# COLORS
+WHITE = (255, 255, 255,   0)
+BLACK = (0,   0,   0,   0)
+BLUE = (0,   0, 255,  64)
+
+
+def draw_winning_line(screen, win_info):
+    thickness = 5
+    index = win_info['index']
+    wtype = win_info['type']
+    padding = 100
+    print(f"index: {index}, type: {wtype}")
+    if wtype == 'row':
+        pygame.draw.line(screen, BLUE, (125, 150+(index*padding)),
+                         (375, 150+(index*padding)), thickness)
+    if wtype == 'column':
+        pygame.draw.line(screen, BLUE, (150+(index*padding), 125),
+                         (150+(index*padding), 375), thickness)
+    pygame.display.update()
 
 
 def draw_circle(screen, rect):
@@ -60,11 +87,6 @@ def draw_board(screen, thickness):
 
 
 def main():
-    # Set up some global variables
-    global board_line_thickness, rects, WHITE, BLACK
-
-    CANVAS_HEIGHT = 500
-    CANVAS_WIDTH = 500
     board_line_thickness = 5
     rects = [
         pygame.Rect((100, 100), (98, 98)),
@@ -77,19 +99,21 @@ def main():
         pygame.Rect((202, 302), (98, 98)),
         pygame.Rect((302, 302), (98, 98)),
     ]
-    # Colors
-    WHITE = (255, 255, 255)
-    BLACK = (0, 0, 0)
 
-    # Initialize pygame?
-    # pygame.init()
+    # Initialize pygame
     board = TicTacToe.TicTacToe()
-    print(board)
+    pygame.init()
+
+    # Set the title
+    pygame.display.set_caption('Tic Tac Toe!')
 
     # Set up the drawing window
     screen = pygame.display.set_mode([CANVAS_WIDTH, CANVAS_HEIGHT])
+    alpha_screen = screen.convert_alpha()
 
+    # Draw what we got!
     draw_board(screen, board_line_thickness)
+    print(board)
 
     # Run until the user asks to quit
     game_over = False
@@ -97,7 +121,7 @@ def main():
     while running:
         for event in pygame.event.get():
             # Did the user click the window close button?
-            if event.type == pygame.QUIT:
+            if event.type == QUIT:
                 running = False
             # Did the user click in a board spot?
             if event.type == MOUSEBUTTONUP:
@@ -110,8 +134,13 @@ def main():
                             claim_square(screen, rect, board.current_player())
                             board.update_board(index)
                             # Check for a win/tie here
-                            winning_marker = board.winner()
-                            if winning_marker:
+                            if board.is_tie():
+                                print("It's a tie!")
+                                game_over = True
+                            if board.is_win():
+                                winning_marker = board.winner()
+                                winning_info = board.win_info()
+                                draw_winning_line(screen, winning_info)
                                 print(f"{winning_marker.upper()} wins!")
                                 game_over = True
                             print(board)
